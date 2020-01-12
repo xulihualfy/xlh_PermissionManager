@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--suppress ALL -->
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:mvc="http://www.springframework.org/schema/mvc"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+        https://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/context
+        https://www.springframework.org/schema/context/spring-context.xsd
+        http://www.springframework.org/schema/aop
+        https://www.springframework.org/schema/aop/spring-aop.xsd
+        http://www.springframework.org/schema/mvc
+        https://www.springframework.org/schema/mvc/spring-mvc.xsd ">
+    <!-- 开启包扫描
+    use-default-filters:包扫描的默认机制，默认是true，就是com.xlh包下的所有包和类都会扫描到
+    我们可以把它设置成false，然后自己定义扫描到哪里（写的是类上面注解的全类名）
+     -->
+    <context:component-scan base-package="com.xlh" use-default-filters="false">
+        <context:include-filter type="annotation" expression="org.springframework.stereotype.Controller"/>
+    </context:component-scan>
+
+    <!-- 启动shiro注解 -->
+    <aop:config proxy-target-class="true"></aop:config>
+    <bean class="org.apache.shiro.spring.security.interceptor.AuthorizationAttributeSourceAdvisor">
+        <property name="securityManager" ref="securityManager" />
+    </bean>
+
+    <!-- 开启注解驱动 -->
+    <mvc:annotation-driven></mvc:annotation-driven>
+    <!-- 配置视图解析器 -->
+    <bean id="viewResolver"
+          class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+        <property name="viewClass"
+                  value="org.springframework.web.servlet.view.JstlView" />
+
+        <!-- prefix: 前缀 -->
+        <property name="prefix" value="/application/" />
+
+        <!-- suffix: 后缀 -->
+        <property name="suffix" value=".jsp" />
+
+    </bean>
+
+    <!-- 忽略静态资源文件 -->
+    <mvc:resources location="/js/" mapping="/js/**"/>
+    <mvc:resources location="/css/" mapping="/css/**"/>
+    <mvc:resources location="/images/" mapping="/images/**"/>
+    <mvc:resources location="/lib/" mapping="/lib/**"/>
+    <mvc:resources location="/skin/" mapping="/skin/**"/>
+
+    <!-- 设置全局异常的处理-->
+    <!--<bean class="org.springframework.web.servlet.handler.SimpleMappingExceptionResolver">
+        <property name="exceptionMappings">
+            <props>
+                &lt;!&ndash; 没有权限异常&ndash;&gt;
+                <prop key="org.apache.shiro.authz.AuthorizationException">unauthorized</prop>
+            </props>
+        </property>
+    </bean>-->
+
+    <!-- 全局异常处理-->
+    <!--
+        异常捕获机制
+            1.当系统出现异常后先找当前异常是否配置
+                a)如果配置了就对应的错误视图
+                b)如果没有配置就找当前异常的父类是否配置
+                    1)如果找到了就跳转到对应错误视图
+                    2)如果找不到就跳转到默认的错误视图
+    -->
+    <bean class = "org.springframework.web.servlet.handler.SimpleMappingExceptionResolver">
+
+        <!-- 默认错误页面 -->
+        <property name="defaultErrorView" value="error"/>
+
+        <!-- 异常页面中可以通过${ex}访问异常信息-->
+        <property name = "exceptionAttribute" value="ex"/>
+
+        <!-- 普通异常可以调整到不同的页面-->
+        <property name="exceptionMappings">
+            <props>
+                <prop key = "org.apache.shiro.authz.UnauthorizedException">
+                    ../unauthorized
+                </prop>
+
+            </props>
+        </property>
+    </bean>
+
+</beans>

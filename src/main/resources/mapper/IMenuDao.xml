@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xlh.dao.IMenuDao">
+    <resultMap type="menu" id="menuMap">
+        <id column="id" property="id"/>
+        <result column="menu_name" property="menuName"/>
+        <result column="menu_url" property="menuUrl"/>
+        <result column="menu_type" property="menuType"/>
+
+        <result column="menu_desc" property="menuDesc"/>
+        <result column="menu_code" property="menuCode"/>
+        <result column="menu_pname" property="menuPname"/>
+        <result column="menu_pid" property="menuPid"/>
+
+
+    </resultMap>
+
+    <resultMap id="menuMap2" type="menu" extends="menuMap">
+        <result column="subid" property="isParent"/>
+
+    </resultMap>
+
+
+    <select id="getMenuPage" resultMap="menuMap">
+  	SELECT
+	    m1.*, IFNULL(m2.menu_name,"无") as menu_pname
+    FROM
+	    t_menu m1
+    LEFT JOIN t_menu m2 ON (m1.menu_pid = m2.id)
+    limit #{index},#{size}
+  </select>
+
+    <select id="getMenuCount" resultType="int">
+  	SELECT
+	    count(1)
+    FROM
+	    t_menu
+  </select>
+    <!-- 查询父菜单-->
+    <select id="getParentMenuById" resultMap="menuMap2">
+
+  	SELECT
+	    m1.*, m2.id AS subid
+    FROM
+	    t_menu m1
+    LEFT JOIN t_menu m2 ON (m1.id = m2.menu_pid)
+    WHERE
+	    m1.menu_pid = #{id}
+    GROUP BY
+	    m1.id;
+  </select>
+
+
+    <select id="selectMenuById" resultMap="menuMap">
+
+  	SELECT
+	    m1.*, IFNULL(m2.menu_name, "无") AS menu_pname
+    FROM
+	    t_menu m1
+    LEFT JOIN t_menu m2 ON (m1.menu_pid = m2.id)
+    WHERE
+	    m1.id = #{id};
+  </select>
+    <select id="getMenuByRoleId" resultMap="menuMap2">
+    SELECT
+	    m1.*,IFNULL(m2.menu_name,"无") as menu_pname
+    FROM
+	    t_menu m1 LEFT JOIN t_menu m2 ON(m1.menu_pid=m2.id)
+    WHERE
+	    m1.id IN (
+		SELECT
+			pr.pid
+		FROM
+			t_role_per pr
+		WHERE
+			pr.rid =#{id}
+	)
+  </select>
+
+    <select id="getMenuCodeByUid" resultType="java.lang.String">
+        SELECT
+            m.menu_code
+        FROM
+            t_menu m,
+            t_user_role ur,
+            t_role_per rp
+        WHERE
+            ur.uid = #{uid}
+        AND ur.rid = rp.rid
+        AND m.id = rp.pid
+        AND m.menu_code IS NOT NULL
+        GROUP BY
+        m.menu_code;
+  </select>
+</mapper>

@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd
+        ">
+
+    <!-- 配置sqlsessionfactory -->
+    <!-- 高配版,spring和mybatis的整合 -->
+    <bean id="sqlSessionFactory" class="com.baomidou.mybatisplus.spring.MybatisSqlSessionFactoryBean">
+        <!-- 加载数据源 -->
+        <property name="dataSource" ref="dataSource"></property>
+        <!-- 设置别名 -->
+        <property name="typeAliasesPackage" value="com.xlh.entity"></property>
+
+        <!-- 设置Mapper文件的路径 -->
+        <property name="mapperLocations" value="classpath:mapper/*.xml"/>
+
+        <!-- 配置分页插件 -->
+        <property name="plugins">
+            <list>
+                <bean class="com.baomidou.mybatisplus.plugins.PaginationInterceptor"></bean>
+            </list>
+        </property>
+    </bean>
+
+
+    <!-- 配置自动创建dao层的代理，创建完之后交给spring来管理 -->
+    <bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+        <!-- 配置sqlsessionfactory（通过名字去配置）
+        sqlSessionFactoryBeanName属性 -->
+
+        <property name="sqlSessionFactoryBeanName" value="sqlSessionFactory"></property>
+        <!-- 配置dao层接口的全类名:
+        basePackage属性 -->
+        <property name="basePackage" value="com.xlh.dao"></property>
+
+    </bean>
+
+</beans>

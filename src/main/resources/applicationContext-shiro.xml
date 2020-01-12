@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:aop="http://www.springframework.org/schema/aop"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/context
+        http://www.springframework.org/schema/context/spring-context.xsd
+        http://www.springframework.org/schema/aop
+        http://www.springframework.org/schema/aop/spring-aop.xsd
+         http://www.springframework.org/schema/tx
+        http://www.springframework.org/schema/tx/spring-tx.xsd
+        ">
+    <!-- 核心组件（安全管理器）-->
+    <bean id="securityManager" class="org.apache.shiro.web.mgt.DefaultWebSecurityManager">
+        <property name="sessionMode" value="native"/>
+        <!-- 配置realm-->
+        <property name="realm"  ref="userRealm"/>
+        <property name="rememberMeManager" ref="rememberMeManager" />
+        <!-- 把cacheManager加入到 securityManager -->
+        <property name="cacheManager" ref="cacheManager" />
+    </bean>
+
+    <!-- 配置安全数据源-->
+    <bean id="userRealm" class="com.xlh.realm.UserRealm">
+        <!-- 设置加密的算法-->
+        <property name="credentialsMatcher">
+            <bean class="org.apache.shiro.authc.credential.HashedCredentialsMatcher">
+                <!-- 加密的算法 -->
+                <property name="hashAlgorithmName" value="MD5"></property>
+                <!--加密次数 -->
+                <property name="hashIterations" value="1024"></property>
+
+            </bean>
+        </property>
+
+        <!-- 启用缓存，默认false； -->
+        <property name="cachingEnabled" value="true" />
+
+        <!--启用身份验证缓存，即缓存AuthenticationInfo信息，默认false -->
+        <property name="authenticationCachingEnabled" value="true" />
+
+        <!--缓存AuthenticationInfo信息的缓存名称 -->
+        <property name="authenticationCacheName" value="authenticationCache" />
+
+        <!--启用授权缓存，设置缓存机制，即缓存AuthorizationInfo信息，默认false -->
+        <property name="authorizationCachingEnabled" value="true" />
+
+        <!--缓存AuthorizationInfo信息的缓存名称 -->
+        <property name="authorizationCacheName" value="authorizationCache" />
+    </bean>
+
+    <!-- 缓存管理器 -->
+    <bean id="cacheManager" class="org.apache.shiro.cache.ehcache.EhCacheManager">
+        <!-- cache配置文件 -->
+        <property name="cacheManagerConfigFile" value="classpath:ehcache.xml" />
+    </bean>
+
+    <!-- 会话Cookie模板 -->
+    <bean id="rememberMeCookie" class="org.apache.shiro.web.servlet.SimpleCookie">
+        <constructor-arg value="sid" />
+        <!--设置js是否可以访问cookie，true不能访问 -->
+        <property name="httpOnly" value="true" />
+        <!-- 保存时长30天,以秒为单位 -->
+        <property name="maxAge" value="2592000" />
+    </bean>
+
+    <!-- rememberMe管理器 -->
+    <bean id="rememberMeManager" class="org.apache.shiro.web.mgt.CookieRememberMeManager">
+        <!-- ipherKey是加密rememberMe Cookie的密钥；默认AES算法 -->
+        <property name="cipherKey" value="#{T(org.apache.shiro.codec.Base64).decode('4AvVhmFLUs0KTA3Kprsdag==')}" />
+        <!-- 引入上面定义的cookie模板 -->
+        <property name="cookie" ref="rememberMeCookie" />
+    </bean>
+
+    <!--  处理shior中bean的生命周期-->
+    <bean id="lifecycleBeanPostProcessor" class="org.apache.shiro.spring.LifecycleBeanPostProcessor"/>
+    <!-- 创建shiroFilter -->
+    <bean id="shiroFilter" class="org.apache.shiro.spring.web.ShiroFilterFactoryBean">
+
+        <!--引入securityManager -->
+        <property name="securityManager" ref="securityManager"/>
+
+        <!-- 如果没有登录就会跳转到登录页面-->
+        <property name="loginUrl" value="/application/user/login.jsp"/>
+
+        <!-- 登成功后跳转的页面-->
+        <property name="successUrl" value="/index.jsp"/>
+
+        <!-- 没有权限跳转的页面-->
+        <property name="unauthorizedUrl" value="/unauthorized.jsp"/>
+
+        <!--  过滤器 ,开启记住我功能后，需要把anon必须认证后才可以访问改成user-->
+        <property name="filterChainDefinitions">
+            <!--
+                anon:匿名访问(没有认证),需要过滤静态资源
+                authc:必须要认证后才可以访问
+             -->
+            <value>
+                /logout=logout
+                /index.jsp=anon
+                /unauthorized.jsp=anon
+                /user/login=anon
+                /*.jar = anon
+                /images/**=anon
+                /js/**=anon
+                /css/**=anon
+                /lib/**=anon
+                /skin/**=anon
+                /** = authc
+            </value>
+        </property>
+    </bean>
+</beans>

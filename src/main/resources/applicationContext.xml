@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:aop="http://www.springframework.org/schema/aop" xmlns:tx="http://www.springframework.org/schema/tx"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans.xsd
+        http://www.springframework.org/schema/context
+        http://www.springframework.org/schema/context/spring-context.xsd
+        http://www.springframework.org/schema/aop
+        http://www.springframework.org/schema/aop/spring-aop.xsd
+         http://www.springframework.org/schema/tx
+        http://www.springframework.org/schema/tx/spring-tx.xsd
+        ">
+    <!-- 把applicationContext.xml分开配置，方便维护，
+    在总的applicationContext.xml文件中引进其他的配置文件就可以了
+    ./:表示当前目录-->
+    <import resource="./applicationContext-dataSource.xml"/>
+    <import resource="./applicationContext-mybatis.xml"/>
+    <import resource="./applicationContext-shiro.xml"/>
+
+    <!-- 开启包扫描,spring管理的是service层-->
+    <context:component-scan base-package="com.xlh" use-default-filters="false">
+        <context:include-filter type="annotation" expression="org.springframework.stereotype.Service"/>
+    </context:component-scan>
+
+    <!-- 3.事务管理器 -->
+    <bean id="tx"
+          class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="dataSource" />
+    </bean>
+
+    <!-- 4.事务策略 -->
+    <tx:advice id="txAdices" transaction-manager="tx">
+        <tx:attributes>
+            <tx:method name="get*" isolation="DEFAULT" propagation="REQUIRED"
+                       read-only="true" />
+
+            <tx:method name="add*" isolation="DEFAULT" propagation="REQUIRED"
+                       read-only="false" />
+            <tx:method name="delete*" isolation="DEFAULT" propagation="REQUIRED"
+                       read-only="false" />
+            <tx:method name="udpate*" isolation="DEFAULT" propagation="REQUIRED"
+                       read-only="false" />
+        </tx:attributes>
+    </tx:advice>
+
+    <!-- 5.AOP的配置 -->
+    <aop:config>
+        <aop:advisor advice-ref="txAdices"
+                     pointcut="execution(* com.xlh.service.*.*(..))" />
+    </aop:config>
+
+</beans>

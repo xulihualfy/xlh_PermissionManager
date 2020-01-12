@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.xlh.dao.IAuthDao">
+    <insert id="addAuthToUser">
+		INSERT INTO t_user_role (uid, rid)
+		VALUES
+		<foreach collection="ids" item="uid" separator=",">
+			(#{uid}, #{rid})
+		</foreach>
+	</insert>
+
+	<select id="queryRoleByUid" resultType="role">
+		SELECT
+			id
+		FROM
+			t_user_role
+		WHERE
+			rid=#{rid} and uid in
+			<foreach collection="ids" item="uid" open="(" close=")" separator=",">
+				#{uid}
+			</foreach>
+
+
+	</select>
+<!-- 查询所有的菜单内容，某角色下所拥有的菜单权限，展示id，name，父菜单id（pid），某角色是否拥有该权限rpe.id（checked）-->
+	<select id="getAuthMenuList" resultType="map">
+		SELECT
+			m.id AS id,
+			m.menu_name AS name,
+			m.menu_pid AS pid,
+			rpe.id AS checked
+		FROM
+			t_menu m
+		LEFT JOIN t_role_per rpe ON (m.id = rpe.pid AND rpe.rid = #{rid})
+
+
+	</select>
+	<select id="getIsMenu" resultType="int">
+
+		SELECT
+			pid
+		FROM
+			t_role_per
+		WHERE
+			rid = #{rid}
+
+	</select>
+	<!-- 登录查询用户-->
+	<select id="getUserByUsername" resultType="user">
+
+		SELECT
+			*
+		FROM
+			t_user
+		WHERE
+	username = #{username}
+	</select>
+	<!-- 查询拥有的角色-->
+	<select id="getAuthRoleByUid" resultType="java.lang.String">
+
+		SELECT
+			r.role_name
+		FROM
+			t_roles r
+		LEFT JOIN t_user_role ur ON (ur.rid = r.id)
+		WHERE
+	ur.uid = #{uid}
+	</select>
+
+	<insert id="AuthToMenu" >
+
+		INSERT INTO t_role_per (rid, pid)
+		VALUES
+		<foreach collection="ids" item="pid" separator=",">
+			(#{rid}, #{pid})
+		</foreach>
+
+	</insert>
+	<!-- 取消用户权限-->
+	<delete id="delUserAuthByUid" >
+
+		DELETE
+		FROM
+			t_user_role
+		WHERE
+			uid =#{uid}
+
+	</delete>
+	<!-- 取消角色的菜单权限-->
+	<delete id="delMenuAuth" >
+
+		DELETE
+		FROM
+			t_role_per
+		WHERE
+			pid =#{pid}
+
+	</delete>
+</mapper>
