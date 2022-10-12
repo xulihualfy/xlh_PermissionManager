@@ -18,7 +18,7 @@
     <!-- spring的版本号-->
     <spring.version>4.1.4.RELEASE</spring.version>
     <!-- shiro的版本号-->
-    <shiro.version>1.4.1</shiro.version>
+    <shiro.version>1.10.0</shiro.version>
   </properties>
 
   <dependencies>
