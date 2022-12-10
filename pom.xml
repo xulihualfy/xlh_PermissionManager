@@ -16,7 +16,7 @@
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     <!-- spring的版本号-->
-    <spring.version>4.1.4.RELEASE</spring.version>
+    <spring.version>6.0.0</spring.version>
     <!-- shiro的版本号-->
     <shiro.version>1.4.1</shiro.version>
   </properties>
